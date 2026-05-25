@@ -62,6 +62,15 @@ Clean, modern CRM/Admin dashboard starter for a small OnlyFans management team.
    npm run dev
    ```
 
+## Fanvue sync (Playwright)
+
+- Run migration: `supabase/migrations/0003_fanvue_sync_data.sql`
+- Ensure `FANVUE_ENCRYPTION_KEY` is set in `.env.local` and Vercel
+- First local setup installs Chromium automatically via `postinstall`
+- Sync uses Playwright login at Fanvue, scrapes dashboard metrics/posts, and saves to Supabase
+- If an API key is stored on the account, API sync is attempted first, then Playwright fallback
+- **Vercel note:** Fanvue sync can take 1–2 minutes. Use a Vercel Pro plan (or run sync locally) because serverless timeouts on Hobby are too short for browser automation.
+
 ## Deploy to Vercel
 
 1. Import project in Vercel.

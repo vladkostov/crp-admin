@@ -39,11 +39,17 @@ export function FanvuePageContent({ initialAccounts }: FanvuePageContentProps) {
     );
 
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 180_000);
+
       const response = await fetch("/api/fanvue/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ accountId }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeout);
 
       const payload = await response.json();
 
@@ -62,17 +68,23 @@ export function FanvuePageContent({ initialAccounts }: FanvuePageContentProps) {
           account.id === accountId ? payload.account : account,
         ),
       );
+      const sourceLabel =
+        payload.stats?.source === "api" ? "Fanvue API" : "browser scrape";
       setFeedback({
         type: "success",
-        message: payload.message ?? "Fanvue account synced successfully.",
+        message: `${payload.message ?? "Fanvue account synced successfully."} (source: ${sourceLabel})`,
       });
-    } catch {
+    } catch (error) {
       setAccounts((prev) =>
         prev.map((account) =>
           account.id === accountId ? { ...account, status: "error" } : account,
         ),
       );
-      setFeedback({ type: "error", message: "Network error while syncing Fanvue account." });
+      const message =
+        error instanceof Error && error.name === "AbortError"
+          ? "Sync timed out. Try again — Fanvue sync can take 1–2 minutes."
+          : "Network error while syncing Fanvue account.";
+      setFeedback({ type: "error", message });
     } finally {
       setSyncingId(null);
     }
@@ -163,7 +175,7 @@ export function FanvuePageContent({ initialAccounts }: FanvuePageContentProps) {
                     disabled={isSyncing}
                   >
                     <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
-                    {isSyncing ? "Syncing Fanvue..." : "Sync Fanvue Now"}
+                    {isSyncing ? "Syncing Fanvue (1–2 min)..." : "Sync Fanvue Now"}
                   </Button>
                 </CardContent>
               </Card>
