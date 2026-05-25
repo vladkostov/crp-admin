@@ -47,11 +47,16 @@ Clean, modern CRM/Admin dashboard starter for a small OnlyFans management team.
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-4. Run database migration in Supabase SQL editor:
+4. Run database migrations in Supabase SQL editor:
 
    - `supabase/migrations/0001_initial_schema.sql`
+   - `supabase/migrations/0002_fanvue_tables.sql`
 
-5. Start dev server:
+5. Add encryption key for Fanvue credentials:
+
+   - `FANVUE_ENCRYPTION_KEY` (long random string, 32+ chars)
+
+6. Start dev server:
 
    ```bash
    npm run dev
