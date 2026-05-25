@@ -60,3 +60,33 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const accountId = new URL(request.url).searchParams.get("accountId")?.trim();
+    if (!accountId) {
+      return NextResponse.json({ error: "accountId is required." }, { status: 400 });
+    }
+
+    const { error } = await supabase.from("fanvue_accounts").delete().eq("id", accountId);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to delete Fanvue account.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}

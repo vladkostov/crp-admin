@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, RefreshCw, Sparkles } from "lucide-react";
+import { Plus, RefreshCw, Sparkles, Trash2 } from "lucide-react";
 import { AddAccountDialog } from "@/components/fanvue/add-account-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ export function FanvuePageContent({ initialAccounts }: FanvuePageContentProps) {
   const [accounts, setAccounts] = useState(initialAccounts);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [syncingId, setSyncingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(
     null,
   );
@@ -90,6 +91,33 @@ export function FanvuePageContent({ initialAccounts }: FanvuePageContentProps) {
     }
   }
 
+  async function handleDelete(accountId: string, accountName: string) {
+    const confirmed = window.confirm(`Delete Fanvue account "${accountName}"?`);
+    if (!confirmed) return;
+
+    setDeletingId(accountId);
+    setFeedback(null);
+
+    try {
+      const response = await fetch(`/api/fanvue/accounts?accountId=${accountId}`, {
+        method: "DELETE",
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        setFeedback({ type: "error", message: payload.error ?? "Failed to delete account." });
+        return;
+      }
+
+      setAccounts((prev) => prev.filter((account) => account.id !== accountId));
+      setFeedback({ type: "success", message: `Deleted ${accountName}.` });
+    } catch {
+      setFeedback({ type: "error", message: "Network error while deleting account." });
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -100,6 +128,17 @@ export function FanvuePageContent({ initialAccounts }: FanvuePageContentProps) {
           </div>
           <p className="text-sm text-muted-foreground">
             Manage connected Fanvue accounts and trigger manual syncs.
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Sync engine v2.1 (real API — no placeholder). Check deploy:{" "}
+            <a
+              href="/api/fanvue/version"
+              target="_blank"
+              rel="noreferrer"
+              className="underline hover:text-foreground"
+            >
+              /api/fanvue/version
+            </a>
           </p>
         </div>
         <Button onClick={() => setDialogOpen(true)}>
@@ -169,14 +208,25 @@ export function FanvuePageContent({ initialAccounts }: FanvuePageContentProps) {
                     </div>
                   </div>
 
-                  <Button
-                    className="w-full sm:w-auto"
-                    onClick={() => handleSync(account.id)}
-                    disabled={isSyncing}
-                  >
-                    <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
-                    {isSyncing ? "Syncing Fanvue (1–2 min)..." : "Sync Fanvue Now"}
-                  </Button>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button
+                      className="w-full sm:w-auto"
+                      onClick={() => handleSync(account.id)}
+                      disabled={isSyncing || deletingId === account.id}
+                    >
+                      <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
+                      {isSyncing ? "Syncing Fanvue (1–2 min)..." : "Sync Fanvue Now"}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      className="w-full sm:w-auto"
+                      onClick={() => handleDelete(account.id, account.account_name)}
+                      disabled={isSyncing || deletingId === account.id}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {deletingId === account.id ? "Deleting..." : "Delete Account"}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             );
