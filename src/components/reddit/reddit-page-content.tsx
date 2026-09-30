@@ -168,6 +168,8 @@ export function RedditPageContent({
           </div>
           <p className="text-sm text-muted-foreground">
             Track posts, posting times, karma, and (later) inbox chats for traffic accounts.
+            Sync needs free Reddit app credentials in Vercel
+            (`REDDIT_CLIENT_ID` + `REDDIT_CLIENT_SECRET`).
           </p>
         </div>
         <Button onClick={() => setDialogOpen(true)}>
