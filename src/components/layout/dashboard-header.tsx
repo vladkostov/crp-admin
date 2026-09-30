@@ -18,6 +18,7 @@ const mobileNavItems = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Models", href: "/dashboard/models" },
   { label: "Social Media", href: "/dashboard/social-media" },
+  { label: "Reddit", href: "/dashboard/social-media/reddit" },
   { label: "Fanvue", href: "/dashboard/social-media/fanvue" },
   { label: "Traffic", href: "/dashboard/traffic" },
   { label: "Fans", href: "/dashboard/fans" },
