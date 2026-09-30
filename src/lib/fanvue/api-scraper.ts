@@ -44,6 +44,14 @@ async function fanvueApiFetch<T>(token: string, path: string): Promise<T> {
 
   if (!response.ok) {
     const body = await response.text();
+
+    if (response.status === 401) {
+      throw new FanvueSyncError(
+        "Fanvue rejected the API token (401 Unauthorized). Do not use Client Secret — paste an OAuth access token from Fanvue Developer after completing Login with Fanvue.",
+        "API_FAILED",
+      );
+    }
+
     throw new FanvueSyncError(
       `Fanvue API error (${response.status}): ${body.slice(0, 240)}`,
       "API_FAILED",

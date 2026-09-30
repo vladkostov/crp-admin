@@ -9,9 +9,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+function friendlyAuthError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  const lower = message.toLowerCase();
+
+  if (
+    lower.includes("failed to fetch") ||
+    lower.includes("networkerror") ||
+    lower.includes("fetch failed") ||
+    lower.includes("network request failed")
+  ) {
+    return "Cannot reach Supabase (Failed to fetch). Open Supabase Dashboard and click Resume if the project is paused, then try again.";
+  }
+
+  if (lower.includes("missing supabase")) {
+    return message;
+  }
+
+  return message;
+}
+
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -22,29 +41,35 @@ export default function LoginPage() {
     setError(null);
     setSuccess(null);
 
-    const formData = new FormData(event.currentTarget);
-    const email = String(formData.get("email") ?? "").trim();
-    const password = String(formData.get("password") ?? "").trim();
+    try {
+      const formData = new FormData(event.currentTarget);
+      const email = String(formData.get("email") ?? "").trim();
+      const password = String(formData.get("password") ?? "").trim();
+      const supabase = createClient();
 
-    const result =
-      mode === "sign-in"
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password });
+      const result =
+        mode === "sign-in"
+          ? await supabase.auth.signInWithPassword({ email, password })
+          : await supabase.auth.signUp({ email, password });
 
-    if (result.error) {
-      setError(result.error.message);
+      if (result.error) {
+        setError(friendlyAuthError(result.error));
+        setLoading(false);
+        return;
+      }
+
+      if (mode === "sign-up" && !result.data.session) {
+        setSuccess("Account created. Check your email and confirm the account, then sign in.");
+        setLoading(false);
+        return;
+      }
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch (err) {
+      setError(friendlyAuthError(err));
       setLoading(false);
-      return;
     }
-
-    if (mode === "sign-up" && !result.data.session) {
-      setSuccess("Account created. Check your email and confirm the account, then sign in.");
-      setLoading(false);
-      return;
-    }
-
-    router.push("/dashboard");
-    router.refresh();
   }
 
   return (

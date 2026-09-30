@@ -69,9 +69,8 @@ export function AddAccountDialog({
         <DialogHeader>
           <DialogTitle>Add Fanvue Account</DialogTitle>
           <DialogDescription>
-            Connect a Fanvue account for syncing revenue and fan metrics. For accurate real
-            data, use a Fanvue API token (Developer Portal). Password login uses browser sync and
-            may be blocked by Fanvue.
+            Connect a Fanvue account for syncing revenue and fan metrics. In API Key field paste
+            your OAuth access token (starts after Login with Fanvue). Do not paste Client Secret.
           </DialogDescription>
         </DialogHeader>
 
@@ -119,7 +118,7 @@ export function AddAccountDialog({
                 id="apiKey"
                 name="apiKey"
                 type="password"
-                placeholder="OAuth access token from Fanvue Developer Portal"
+                placeholder="OAuth access token (NOT Client Secret)"
                 required={authMode === "api"}
               />
             </TabsContent>
